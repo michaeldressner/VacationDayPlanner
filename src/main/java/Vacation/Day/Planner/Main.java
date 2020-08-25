@@ -209,6 +209,7 @@ public class Main {
 				}
 			}
 			catch (EOFException e) {
+				// No more PlaceDetail records in the file
 				return result;
 			}
 			catch (ClassNotFoundException e) {

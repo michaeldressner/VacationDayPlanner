@@ -1,4 +1,4 @@
-package Vacation.Day.Planner;
+package VacationDayPlanner;
 
 import java.io.EOFException;
 import java.io.File;
@@ -11,7 +11,11 @@ import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Scanner;
+import java.util.Set;
 
 import com.google.maps.FindPlaceFromTextRequest;
 import com.google.maps.GeoApiContext;
@@ -105,10 +109,20 @@ public class Main {
 				System.out.println(pd.name + " added to destinations");
 			}
 			else if (yesNoQuit.equalsIgnoreCase("q")) {
+				System.out.println();
 				break;
 			}
 			System.out.println();
 		}
+		
+		int days;
+		do {
+			System.out.print("Enter the number of days on vacation (must be less"
+				+ " or equal to " + destinations.size() + ": ");
+			days = Integer.parseInt(scanner.nextLine());
+		} while (days > destinations.size() || days < 1);
+		
+		PlaceCluster[] clusters = kMeans(destinations, days);
 	}
 
 	private static class ReviewDescComparator
@@ -246,5 +260,90 @@ public class Main {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+	}
+	
+	private static PlaceCluster[] 
+			kMeans(ArrayList<PlaceDetails> destinations, int days) {
+		// Create the array of clusters
+		Map<PlaceDetails, Integer> placeClusters = new HashMap<>();
+		PlaceCluster[] clusters = new PlaceCluster[days];
+		
+		for (int i = 0; i < days; ++i)
+			clusters[i] = new PlaceCluster();
+		
+		// Copy the destination ArrayList so we can shuffle and
+		// delete elements without affecting the original
+		ArrayList<PlaceDetails> destCopy = new ArrayList<>(destinations);
+		
+		// Shuffle the list
+		Collections.shuffle(destCopy);
+		// Partition the dest_copy array into days
+		for (int i = 0; i < days; ++i) {
+			double start = i * (destCopy.size() / (double) days);
+			double end = (i + 1) * (destCopy.size() / (double) days);
+			List<PlaceDetails> randomPartition =
+					destCopy.subList((int) start, (int) end);
+			for (PlaceDetails pd : randomPartition) {
+				clusters[i].addPlace(pd);
+				placeClusters.put(pd, i);
+			}
+			
+			clusters[i].recalculateAverage();
+		}
+		
+		
+		// Now that we have initialized the clusters and the averages
+		// for each cluster, we can now repeat the process of calculating
+		// the new clusters for each point and recalculating the cluster
+		// averages until no more points have changed clusters.
+		boolean done = false;
+		while (!done) {
+			done = true;
+			
+			Set<PlaceDetails> keys = placeClusters.keySet();
+			for (PlaceDetails pd : keys) {
+				int oldClusterIdx = placeClusters.get(pd);
+				LatLng pdLatLng = pd.geometry.location;
+				int nearestClusterIdx = 0;
+				double nearestClusterDist = EuclideanDistance(pdLatLng, clusters[0].getAvgValue());
+				
+				for (int i = 1; i < days; ++i) {
+					double dist = EuclideanDistance(pdLatLng, clusters[i].getAvgValue());
+					
+					if (dist < nearestClusterDist) {
+						nearestClusterDist = dist;
+						nearestClusterIdx = i;
+					}
+				}
+				
+				if (oldClusterIdx != nearestClusterIdx) {
+					done = false;
+					placeClusters.put(pd, nearestClusterIdx);
+				}
+			}
+			
+			// Reset the cluster
+			for (int i = 0; i < days; ++i) {
+				clusters[i].reset();
+			}
+			
+			// Put each place in its new cluster
+			for (PlaceDetails pd : keys) {
+				int idx = placeClusters.get(pd);
+				clusters[idx].addPlace(pd);
+			}
+			
+			// Recalculate averages for each cluster
+			for (int i = 0; i < days; ++i) {
+				clusters[i].recalculateAverage();
+			}
+		}
+		
+		return clusters;
+	}
+
+	private static double EuclideanDistance(LatLng l1, LatLng l2) {
+		return Math.sqrt(Math.pow(l2.lat - l1.lat, 2.0) + 
+				Math.pow(l2.lng - l1.lng, 2.0));
 	}
 }

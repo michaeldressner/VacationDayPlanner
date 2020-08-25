@@ -4,6 +4,9 @@
 package Vacation.Day.Planner;
 
 import org.junit.Test;
+
+import VacationDayPlanner.Library;
+
 import static org.junit.Assert.*;
 
 public class LibraryTest {

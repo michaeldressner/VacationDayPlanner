@@ -1,4 +1,4 @@
-package Vacation.Day.Planner;
+package VacationDayPlanner;
 
 import java.util.ArrayList;
 
@@ -37,5 +37,10 @@ public class PlaceCluster {
 	
 	public LatLng getAvgValue() {
 		return avgLoc;
+	}
+	
+	public void reset() {
+		items.clear();
+		avgLoc = new LatLng(0.0, 0.0);
 	}
 }

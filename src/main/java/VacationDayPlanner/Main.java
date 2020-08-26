@@ -125,6 +125,7 @@ public class Main {
 		} while (days > destinations.size() || days < 1);
 		
 		PlaceCluster[] clusters = kMeans(destinations, days);
+		
 		ArrayList<PlaceCluster> nonEmptyClusters = new ArrayList<>();
 		
 		for (int i = 0; i < clusters.length; ++i) {
@@ -133,6 +134,19 @@ public class Main {
 			if (places.size() > 0)
 				nonEmptyClusters.add(clusters[i]);
 		}
+		
+		do {
+			if (nonEmptyClusters.size() < days) {
+				PlaceCluster largestCluster = getLargestPlaceCluster(nonEmptyClusters);
+				
+				PlaceCluster[] splitLargest = kMeans(largestCluster.getPlaces(), 2);
+				nonEmptyClusters.remove(largestCluster);
+				for (int i = 0; i < splitLargest.length; ++i) {
+					if (splitLargest[i].getPlaces().size() > 0)
+						nonEmptyClusters.add(splitLargest[i]);
+				}
+			}
+		} while (nonEmptyClusters.size() < days);
 		
 		System.out.println("Your input was grouped into "
 				+ nonEmptyClusters.size() + " clusters: ");
@@ -171,12 +185,7 @@ public class Main {
 				+ "   find there are too many things on the list to reasonably\n"
 				+ "   fit into an actual day, so it is up to you to make a\n"
 				+ "   reasonable day schedule from the output of the program.\n"
-				+ "   There also may be fewer clusters than days. In this case,\n"
-				+ "   you either may be able to fit everything into fewer days\n"
-				+ "   (and do even more than you planned the remaining days), or\n"
-				+ "   you might have to take some items from the cluster and do\n"
-				+ "   them one day, then come back and do the remaining items from\n"
-				+ "   the cluster the next day. This is not a scheduling app perse,\n"
+				+ "   Although this is not a scheduling app perse, it\n"
 				+ "   might be at some point in the future. It still is useful if\n"
 				+ "   used appropriately.\n";
 		
@@ -390,6 +399,20 @@ public class Main {
 		}
 		
 		return clusters;
+	}
+	
+	private static PlaceCluster getLargestPlaceCluster(ArrayList<PlaceCluster> clusters) {
+		PlaceCluster largest = new PlaceCluster();
+		int maxSize = 0;
+		
+		for (PlaceCluster pc : clusters) {
+			if (pc.getPlaces().size() > maxSize) {
+				largest = pc;
+				maxSize = pc.getPlaces().size();
+			}
+		}
+		
+		return largest;
 	}
 
 	private static double EuclideanDistance(LatLng l1, LatLng l2) {

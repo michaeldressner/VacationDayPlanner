@@ -34,6 +34,8 @@ public class Main {
 		String apiKey, input;
 		ArrayList<PlaceDetails> allPlaceDetails;
 		
+		printIntroduction();
+		
 		System.out.println("Choose one of the following options: ");
 		System.out.println("1. Run a new dataset from the web (uses a lot of"
 				+ " API calls but saves the data in the process)");
@@ -118,11 +120,32 @@ public class Main {
 		int days;
 		do {
 			System.out.print("Enter the number of days on vacation (must be less"
-				+ " or equal to " + destinations.size() + ": ");
+				+ " or equal to " + destinations.size() + "): ");
 			days = Integer.parseInt(scanner.nextLine());
 		} while (days > destinations.size() || days < 1);
 		
 		PlaceCluster[] clusters = kMeans(destinations, days);
+		ArrayList<PlaceCluster> nonEmptyClusters = new ArrayList<>();
+		
+		for (int i = 0; i < clusters.length; ++i) {
+			ArrayList<PlaceDetails> places = clusters[i].getPlaces();
+			
+			if (places.size() > 0)
+				nonEmptyClusters.add(clusters[i]);
+		}
+		
+		System.out.println("Your input was grouped into "
+				+ nonEmptyClusters.size() + " clusters: ");
+		
+		int i = 0;
+		for (PlaceCluster pc : nonEmptyClusters) {
+			System.out.println();
+			System.out.println("Cluster " + (i++ + 1) + ":");
+			
+			for (PlaceDetails pd : pc.getPlaces()) {
+				System.out.println(pd.name);
+			}
+		}
 	}
 
 	private static class ReviewDescComparator
@@ -131,6 +154,33 @@ public class Main {
 		public int compare(PlaceDetails pd1, PlaceDetails pd2) {
 			return pd2.userRatingsTotal - pd1.userRatingsTotal;
 		}
+	}
+	
+	private static void printIntroduction() {
+		String welcome = "Welcome to Vacation Day Planner\n"
+				+ "If used correctly, this tool can be used to plan where to\n"
+				+ "visit on a vacation to a specific destination, as well as\n"
+				+ "discover new tourist attractions in the process. In order\n"
+				+ "to use this program correctly, keep the following in mind:\n"
+				+ "\n"
+				+ "1. This program is not actually meant to provide you with\n"
+				+ "   a list of things to do in the same day, which might\n"
+				+ "   sound a bit contradictory. It groups the locations\n"
+				+ "   that you would like to go visit into clusters of places\n"
+				+ "   that are close to one another. In some cases, you might\n"
+				+ "   find there are too many things on the list to reasonably\n"
+				+ "   fit into an actual day, so it is up to you to make a\n"
+				+ "   reasonable day schedule from the output of the program.\n"
+				+ "   There also may be fewer clusters than days. In this case,\n"
+				+ "   you either may be able to fit everything into fewer days\n"
+				+ "   (and do even more than you planned the remaining days), or\n"
+				+ "   you might have to take some items from the cluster and do\n"
+				+ "   them one day, then come back and do the remaining items from\n"
+				+ "   the cluster the next day. This is not a scheduling app perse,\n"
+				+ "   might be at some point in the future. It still is useful if\n"
+				+ "   used appropriately.\n";
+		
+		System.out.print(welcome);
 	}
 
 	private static String placeDetailsToString(PlaceDetails pd) {

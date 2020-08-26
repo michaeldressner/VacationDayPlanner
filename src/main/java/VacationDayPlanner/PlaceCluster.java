@@ -39,6 +39,10 @@ public class PlaceCluster {
 		return avgLoc;
 	}
 	
+	public ArrayList<PlaceDetails> getPlaces() {
+		return new ArrayList<PlaceDetails>(items);
+	}
+	
 	public void reset() {
 		items.clear();
 		avgLoc = new LatLng(0.0, 0.0);

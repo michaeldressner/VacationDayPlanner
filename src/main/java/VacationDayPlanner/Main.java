@@ -20,12 +20,14 @@ import java.util.Set;
 import com.google.maps.FindPlaceFromTextRequest;
 import com.google.maps.GeoApiContext;
 import com.google.maps.PlacesApi;
+import com.google.maps.StaticMapsApi;
 import com.google.maps.errors.ApiException;
 import com.google.maps.model.LatLng;
 import com.google.maps.model.PlaceDetails;
 import com.google.maps.model.PlaceType;
 import com.google.maps.model.PlacesSearchResponse;
 import com.google.maps.model.PlacesSearchResult;
+import com.google.maps.model.Size;
 
 public class Main {
 	public static void main(String[] args) {
@@ -33,6 +35,7 @@ public class Main {
 		int mainMenuChoice, radius;
 		String apiKey, input;
 		ArrayList<PlaceDetails> allPlaceDetails;
+		GeoApiContext context = null;
 		
 		printIntroduction();
 		
@@ -48,6 +51,8 @@ public class Main {
 		if (mainMenuChoice == 1) {
 			System.out.print("Enter your API key: ");
 			apiKey = scanner.nextLine();
+			context = new GeoApiContext.Builder()
+					.apiKey(apiKey).build();
 			
 			System.out.print("Enter a place: ");
 			input = scanner.nextLine();
@@ -56,7 +61,7 @@ public class Main {
 			System.out.print("Enter the search radius in miles (max 31): ");
 			radius = Integer.parseInt(scanner.nextLine()) * 1609;
 			
-			allPlaceDetails = getNewData(apiKey, input,
+			allPlaceDetails = getNewData(context, input,
 					radius);
 			
 			boolean storeData;
@@ -160,6 +165,30 @@ public class Main {
 				System.out.println(pd.name);
 			}
 		}
+		
+		boolean genImg;
+		String genChoice;
+		do {
+			System.out.print("Would you like to generate an image file?"
+					+ " (y/n): ");
+			genChoice = scanner.nextLine();
+		} while (!genChoice.equalsIgnoreCase("y") &&
+				!genChoice.equalsIgnoreCase("n"));
+		
+		genImg = genChoice.equalsIgnoreCase("y") ? true : false;
+		
+		if (genImg) {
+			if (context == null) {
+				System.out.print("Enter your API key: ");
+				apiKey = scanner.nextLine();
+				context = new GeoApiContext.Builder()
+						.apiKey(apiKey).build();
+			}
+			
+			Size size = new Size(500, 500);
+			
+			StaticMapsApi.newRequest(context, size);
+		}
 	}
 
 	private static class ReviewDescComparator
@@ -211,11 +240,9 @@ public class Main {
 		return result.toString();
 	}
 	
-	private static ArrayList<PlaceDetails> getNewData(String apiKey,
+	private static ArrayList<PlaceDetails> getNewData(GeoApiContext context,
 			String input, int radius) {
 		try {
-			GeoApiContext context = new GeoApiContext.Builder()
-					.apiKey(apiKey).build();
 			PlacesSearchResult[] results = PlacesApi.findPlaceFromText(context,
 					input, FindPlaceFromTextRequest.InputType.TEXT_QUERY)
 					.await().candidates;

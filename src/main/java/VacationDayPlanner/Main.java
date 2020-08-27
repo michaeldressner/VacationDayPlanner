@@ -89,6 +89,7 @@ public class Main {
 			allPlaceDetails = getDataFromFile(fileName);
 		}
 		else { // Should not happen
+			scanner.close();
 			throw new IllegalArgumentException(
 					"How did this even happen?");
 		}
@@ -132,37 +133,14 @@ public class Main {
 		
 		PlaceCluster[] clusters = kMeans(destinations, days);
 		
-		ArrayList<PlaceCluster> nonEmptyClusters = new ArrayList<>();
+		System.out.println("Your input was grouped into "
+				+ clusters.length + " clusters: ");
 		
 		for (int i = 0; i < clusters.length; ++i) {
-			ArrayList<PlaceDetails> places = clusters[i].getPlaces();
-			
-			if (places.size() > 0)
-				nonEmptyClusters.add(clusters[i]);
-		}
-		
-		do {
-			if (nonEmptyClusters.size() < days) {
-				PlaceCluster largestCluster = getLargestPlaceCluster(nonEmptyClusters);
-				
-				PlaceCluster[] splitLargest = kMeans(largestCluster.getPlaces(), 2);
-				nonEmptyClusters.remove(largestCluster);
-				for (int i = 0; i < splitLargest.length; ++i) {
-					if (splitLargest[i].getPlaces().size() > 0)
-						nonEmptyClusters.add(splitLargest[i]);
-				}
-			}
-		} while (nonEmptyClusters.size() < days);
-		
-		System.out.println("Your input was grouped into "
-				+ nonEmptyClusters.size() + " clusters: ");
-		
-		int i = 0;
-		for (PlaceCluster pc : nonEmptyClusters) {
 			System.out.println();
-			System.out.println("Cluster " + (i++ + 1) + ":");
+			System.out.println("Cluster " + (i + 1) + ":");
 			
-			for (PlaceDetails pd : pc.getPlaces()) {
+			for (PlaceDetails pd : clusters[i].getPlaces()) {
 				System.out.println(pd.name);
 			}
 		}
@@ -194,6 +172,8 @@ public class Main {
 			
 			StaticMapsApi.newRequest(context, size);
 		}
+		
+		scanner.close();
 	}
 
 	private static class ReviewDescComparator
@@ -321,6 +301,9 @@ public class Main {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
+			finally {
+				ois.close();
+			}
 		} catch (FileNotFoundException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -430,7 +413,36 @@ public class Main {
 			}
 		}
 		
-		return clusters;
+		ArrayList<PlaceCluster> nonEmptyClusters = new ArrayList<>();
+		
+		for (int i = 0; i < clusters.length; ++i) {
+			ArrayList<PlaceDetails> places = clusters[i].getPlaces();
+			
+			if (places.size() > 0)
+				nonEmptyClusters.add(clusters[i]);
+		}
+		
+		do {
+			if (nonEmptyClusters.size() < days) {
+				PlaceCluster largestCluster = getLargestPlaceCluster(nonEmptyClusters);
+				
+				PlaceCluster[] splitLargest = kMeans(largestCluster.getPlaces(), 2);
+				nonEmptyClusters.remove(largestCluster);
+				for (int i = 0; i < splitLargest.length; ++i) {
+					if (splitLargest[i].getPlaces().size() > 0)
+						nonEmptyClusters.add(splitLargest[i]);
+				}
+			}
+		} while (nonEmptyClusters.size() < days);
+		
+		PlaceCluster[] clusterList = new PlaceCluster[nonEmptyClusters.size()];
+		
+		int i = 0;
+		for (PlaceCluster pc : nonEmptyClusters) {
+			clusterList[i++] = pc;
+		}
+		
+		return clusterList;
 	}
 	
 	private static PlaceCluster getLargestPlaceCluster(ArrayList<PlaceCluster> clusters) {

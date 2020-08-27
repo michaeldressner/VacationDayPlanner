@@ -1,5 +1,6 @@
 package VacationDayPlanner;
 
+import java.io.BufferedOutputStream;
 import java.io.EOFException;
 import java.io.File;
 import java.io.FileInputStream;
@@ -8,19 +9,23 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 import java.util.Scanner;
 import java.util.Set;
 
 import com.google.maps.FindPlaceFromTextRequest;
 import com.google.maps.GeoApiContext;
+import com.google.maps.ImageResult;
 import com.google.maps.PlacesApi;
 import com.google.maps.StaticMapsApi;
+import com.google.maps.StaticMapsRequest;
 import com.google.maps.StaticMapsRequest.Markers;
 import com.google.maps.errors.ApiException;
 import com.google.maps.model.LatLng;
@@ -86,6 +91,7 @@ public class Main {
 		else if (mainMenuChoice == 2) {
 			System.out.print("Enter a file name: ");
 			String fileName = scanner.nextLine();
+			input = fileName;
 			allPlaceDetails = getDataFromFile(fileName);
 		}
 		else { // Should not happen
@@ -145,6 +151,7 @@ public class Main {
 			}
 		}
 		
+		System.out.println();
 		boolean genImg;
 		String genChoice;
 		do {
@@ -169,11 +176,49 @@ public class Main {
 			
 			// Add the markers
 			ArrayList<Markers> markerGroups = new ArrayList<>();
+			for (int i = 0; i < clusters.length; ++i) {
+				ArrayList<PlaceDetails> placeDetails = clusters[i].getPlaces();
+				Markers markers = new Markers();
+				
+				// Random color code
+				Random random = new Random();
+		        int nextInt = random.nextInt(0xffffff + 1);
+		        String color = String.format("0x%06x", nextInt);
+		        
+				markers.color(color);
+				
+				for (PlaceDetails pd : placeDetails) {
+					markers.addLocation(pd.geometry.location);
+				}
+				
+				markerGroups.add(markers);
+			}
 			
-			StaticMapsApi.newRequest(context, size);
+			StaticMapsRequest request = StaticMapsApi.newRequest(context,
+					size);
+			
+			for (Markers markers : markerGroups) {
+				request = request.markers(markers);
+			}
+			
+			try {
+				ImageResult imgResult = request.await();
+				FileOutputStream fos = new FileOutputStream(input + ".png");
+				OutputStream out = new BufferedOutputStream(fos);
+				out.write(imgResult.imageData);
+				fos.close();
+				out.close();
+			} catch (ApiException e) {
+				e.printStackTrace();
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
 		}
 		
 		scanner.close();
+		context.shutdown();
 	}
 
 	private static class ReviewDescComparator

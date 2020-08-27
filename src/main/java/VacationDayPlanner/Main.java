@@ -218,7 +218,8 @@ public class Main {
 		}
 		
 		scanner.close();
-		context.shutdown();
+		if (context != null)
+			context.shutdown();
 	}
 
 	private static class ReviewDescComparator

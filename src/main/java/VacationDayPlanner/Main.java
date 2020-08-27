@@ -21,6 +21,7 @@ import com.google.maps.FindPlaceFromTextRequest;
 import com.google.maps.GeoApiContext;
 import com.google.maps.PlacesApi;
 import com.google.maps.StaticMapsApi;
+import com.google.maps.StaticMapsRequest.Markers;
 import com.google.maps.errors.ApiException;
 import com.google.maps.model.LatLng;
 import com.google.maps.model.PlaceDetails;
@@ -185,7 +186,11 @@ public class Main {
 						.apiKey(apiKey).build();
 			}
 			
+			// Lets say 500 x 500 for now
 			Size size = new Size(500, 500);
+			
+			// Add the markers
+			ArrayList<Markers> markerGroups = new ArrayList<>();
 			
 			StaticMapsApi.newRequest(context, size);
 		}

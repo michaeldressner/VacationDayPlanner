@@ -68,7 +68,7 @@ public class Main {
 			radius = Integer.parseInt(scanner.nextLine()) * 1609;
 			
 			allPlaceDetails = getNewData(context, input,
-					radius);
+					radius, PlaceType.TOURIST_ATTRACTION);
 			
 			boolean storeData;
 			String storeChoice;
@@ -277,7 +277,7 @@ public class Main {
 	}
 	
 	private static ArrayList<PlaceDetails> getNewData(GeoApiContext context,
-			String input, int radius) {
+			String input, int radius, PlaceType type) {
 		try {
 			PlacesSearchResult[] results = PlacesApi.findPlaceFromText(context,
 					input, FindPlaceFromTextRequest.InputType.TEXT_QUERY)
@@ -297,7 +297,7 @@ public class Main {
 				// Search nearby
 				PlacesSearchResponse places = PlacesApi
 						.nearbySearchQuery(context, location)
-						.type(PlaceType.TOURIST_ATTRACTION).radius(radius)
+						.type(type).radius(radius)
 						.await();
 				boolean moreResults = false;
 				do { 

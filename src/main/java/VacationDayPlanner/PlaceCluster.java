@@ -4,9 +4,10 @@ import java.util.ArrayList;
 
 import com.google.maps.model.LatLng;
 import com.google.maps.model.PlaceDetails;
+import com.google.maps.model.PlacesSearchResult;
 
 public class PlaceCluster {
-	private ArrayList<PlaceDetails> items;
+	private ArrayList<PlacesSearchResult> items;
 	private LatLng avgLoc;
 	
 	public PlaceCluster() {
@@ -14,16 +15,16 @@ public class PlaceCluster {
 		avgLoc = new LatLng(0.0, 0.0);
 	}
 	
-	public void addPlace(PlaceDetails pd) {
-		items.add(pd);
+	public void addPlace(PlacesSearchResult psr) {
+		items.add(psr);
 	}
 	
 	public void recalculateAverage() {
 		double totalLat = 0.0, totalLng = 0.0,
 				avgLat, avgLng;
 		
-		for (PlaceDetails pd : items) {
-			LatLng location = pd.geometry.location;
+		for (PlacesSearchResult psr : items) {
+			LatLng location = psr.geometry.location;
 			
 			totalLat += location.lat;
 			totalLng += location.lng;
@@ -39,8 +40,8 @@ public class PlaceCluster {
 		return avgLoc;
 	}
 	
-	public ArrayList<PlaceDetails> getPlaces() {
-		return new ArrayList<PlaceDetails>(items);
+	public ArrayList<PlacesSearchResult> getPlaces() {
+		return new ArrayList<PlacesSearchResult>(items);
 	}
 	
 	public void reset() {

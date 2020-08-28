@@ -19,6 +19,7 @@ import java.util.Map;
 import java.util.Random;
 import java.util.Scanner;
 import java.util.Set;
+import java.util.TreeSet;
 
 import com.google.maps.FindPlaceFromTextRequest;
 import com.google.maps.GeoApiContext;
@@ -40,7 +41,7 @@ public class Main {
 		Scanner scanner = new Scanner(System.in);
 		int mainMenuChoice, radius;
 		String apiKey, input;
-		ArrayList<PlaceDetails> allPlaceDetails;
+		ArrayList<PlacesSearchResult> allPlaces;
 		GeoApiContext context = null;
 		
 		printIntroduction();
@@ -67,8 +68,19 @@ public class Main {
 			System.out.print("Enter the search radius in miles (max 31): ");
 			radius = Integer.parseInt(scanner.nextLine()) * 1609;
 			
-			allPlaceDetails = getNewData(context, input,
+			System.out.println();
+			System.out.println("Fetching tourist destinations...");
+			ArrayList<PlacesSearchResult> touristPlaces = getNewData(context, input,
 					radius, PlaceType.TOURIST_ATTRACTION);
+			System.out.println("Fetching park destinations...");
+			ArrayList<PlacesSearchResult> parkPlaces = getNewData(context, input, radius,
+					PlaceType.PARK);
+			System.out.println("Fetching restaurant destinations...");
+			ArrayList<PlacesSearchResult> restaurantPlaces = getNewData(context, input, radius,
+					PlaceType.RESTAURANT);
+			allPlaces = mergeDataLists(touristPlaces, parkPlaces);
+			allPlaces = mergeDataLists(allPlaces, restaurantPlaces);
+			Collections.sort(allPlaces, new ReviewDescComparator());
 			
 			boolean storeData;
 			String storeChoice;
@@ -89,7 +101,7 @@ public class Main {
 				// as the file we stored the data in.
 				input = fileName;
 				
-				writeDataToFile(fileName, allPlaceDetails);
+				writeDataToFile(fileName, allPlaces);
 			}
 			
 		}
@@ -97,7 +109,7 @@ public class Main {
 			System.out.print("Enter a file name: ");
 			String fileName = scanner.nextLine();
 			input = fileName;
-			allPlaceDetails = getDataFromFile(fileName);
+			allPlaces = getDataFromFile(fileName);
 		}
 		else { // Should not happen
 			scanner.close();
@@ -107,13 +119,13 @@ public class Main {
 		
 		// Ask the user if they would like to go to each
 		// places and make a list.
-		ArrayList<PlaceDetails> destinations =
+		ArrayList<PlacesSearchResult> destinations =
 				new ArrayList<>();
-		for (PlaceDetails pd : allPlaceDetails) {
+		for (PlacesSearchResult psr : allPlaces) {
 			System.out.println();
 			System.out.println("Would you like to go to the following"
 					+ " place?");
-			System.out.println(placeDetailsToString(pd));
+			System.out.println(placesSearchResultToString(psr));
 			
 			String yesNoQuit;
 			do {
@@ -125,8 +137,8 @@ public class Main {
 					!yesNoQuit.equalsIgnoreCase("q"));
 			
 			if (yesNoQuit.equalsIgnoreCase("y")) {
-				destinations.add(pd);
-				System.out.println(pd.name + " added to destinations");
+				destinations.add(psr);
+				System.out.println(psr.name + " added to destinations");
 			}
 			else if (yesNoQuit.equalsIgnoreCase("q")) {
 				System.out.println();
@@ -151,8 +163,8 @@ public class Main {
 			System.out.println();
 			System.out.println("Cluster " + (i + 1) + ":");
 			
-			for (PlaceDetails pd : clusters[i].getPlaces()) {
-				System.out.println(pd.name);
+			for (PlacesSearchResult psr : clusters[i].getPlaces()) {
+				System.out.println(psr.name);
 			}
 		}
 		
@@ -182,7 +194,7 @@ public class Main {
 			// Add the markers
 			ArrayList<Markers> markerGroups = new ArrayList<>();
 			for (int i = 0; i < clusters.length; ++i) {
-				ArrayList<PlaceDetails> placeDetails = clusters[i].getPlaces();
+				ArrayList<PlacesSearchResult> places = clusters[i].getPlaces();
 				Markers markers = new Markers();
 				
 				// Random color code
@@ -192,8 +204,8 @@ public class Main {
 		        
 				markers.color(color);
 				
-				for (PlaceDetails pd : placeDetails) {
-					markers.addLocation(pd.geometry.location);
+				for (PlacesSearchResult psr : places) {
+					markers.addLocation(psr.geometry.location);
 				}
 				
 				markerGroups.add(markers);
@@ -227,10 +239,31 @@ public class Main {
 			context.shutdown();
 	}
 
+	private static ArrayList<PlacesSearchResult> mergeDataLists(
+			ArrayList<PlacesSearchResult> l1,
+			ArrayList<PlacesSearchResult> l2) {
+			Set<PlacesSearchResult> mergedSet = new TreeSet<>(
+				new Comparator<PlacesSearchResult>() {
+					@Override
+					public int compare(PlacesSearchResult psr1,
+							PlacesSearchResult psr2) {
+						return psr1.placeId.compareTo(psr2.placeId);
+					}
+					
+				});
+		ArrayList<PlacesSearchResult> result = new ArrayList<>();
+		
+		mergedSet.addAll(l1);
+		mergedSet.addAll(l2);
+		
+		result.addAll(mergedSet);
+		return result;
+	}
+
 	private static class ReviewDescComparator
-			implements Comparator<PlaceDetails> {
+			implements Comparator<PlacesSearchResult> {
 		@Override
-		public int compare(PlaceDetails pd1, PlaceDetails pd2) {
+		public int compare(PlacesSearchResult pd1, PlacesSearchResult pd2) {
 			return pd2.userRatingsTotal - pd1.userRatingsTotal;
 		}
 	}
@@ -257,27 +290,24 @@ public class Main {
 		System.out.print(welcome);
 	}
 
-	private static String placeDetailsToString(PlaceDetails pd) {
+	private static String placesSearchResultToString(PlacesSearchResult psr) {
 		// Convert PlacesSearchResult to string
 		StringBuilder result = new StringBuilder();
 		// Add place name
-		result = result.append(pd.name);
+		result = result.append(psr.name + "\n");
 		
 		// Add address
-		if (pd.formattedAddress != null)
-			result = result.append(": " + pd.formattedAddress + "\n");
+		if (psr.formattedAddress != null)
+			result = result.append(": " + psr.formattedAddress + "\n");
 		
-		result = result.append("Number of ratings: " + pd.userRatingsTotal +
-				" Rating: " + pd.rating + "\n");
-		
-		if (pd.website != null)
-			result = result.append("More details: " + pd.website);
-		
+		result = result.append("Number of ratings: " + psr.userRatingsTotal +
+				" Rating: " + psr.rating + "\n");
+
 		return result.toString();
 	}
 	
-	private static ArrayList<PlaceDetails> getNewData(GeoApiContext context,
-			String input, int radius, PlaceType type) {
+	private static ArrayList<PlacesSearchResult> getNewData(
+			GeoApiContext context, String input, int radius, PlaceType type) {
 		try {
 			PlacesSearchResult[] results = PlacesApi.findPlaceFromText(context,
 					input, FindPlaceFromTextRequest.InputType.TEXT_QUERY)
@@ -292,7 +322,7 @@ public class Main {
 				LatLng location = details.geometry.location;
 				
 				// ArrayList of all results
-				ArrayList<PlaceDetails> allPlaceDetails = new ArrayList<>();
+				ArrayList<PlacesSearchResult> allPlaces = new ArrayList<>();
 				
 				// Search nearby
 				PlacesSearchResponse places = PlacesApi
@@ -302,10 +332,7 @@ public class Main {
 				boolean moreResults = false;
 				do { 
 					for (PlacesSearchResult psr : places.results) {
-						placeId = psr.placeId;
-						details = PlacesApi.placeDetails(context, placeId)
-								.await();
-						allPlaceDetails.add(details);
+						allPlaces.add(psr);
 					}
 					
 					if (places.nextPageToken != null) {
@@ -318,11 +345,8 @@ public class Main {
 					else
 						moreResults = false;
 				} while (moreResults);
-
-				// Sort by reviews descending
-				Collections.sort(allPlaceDetails, new ReviewDescComparator());
 				
-				return allPlaceDetails;
+				return allPlaces;
 			}
 		} catch (IOException | ApiException | InterruptedException e) {
 			e.printStackTrace();
@@ -331,8 +355,8 @@ public class Main {
 		return null;
 	}
 	
-	private static ArrayList<PlaceDetails> getDataFromFile(String fileName) {
-		ArrayList<PlaceDetails> result = new ArrayList<>();
+	private static ArrayList<PlacesSearchResult> getDataFromFile(String fileName) {
+		ArrayList<PlacesSearchResult> result = new ArrayList<>();
 		
 		try {
 			FileInputStream fis = new FileInputStream(fileName);
@@ -340,8 +364,8 @@ public class Main {
 			
 			try {
 				while (true) {
-					PlaceDetails pd = (PlaceDetails) ois.readObject();
-					result.add(pd);
+					PlacesSearchResult psr = (PlacesSearchResult) ois.readObject();
+					result.add(psr);
 				}
 			}
 			catch (EOFException e) {
@@ -364,13 +388,13 @@ public class Main {
 	}
 	
 	private static void writeDataToFile(String fileName,
-			ArrayList<PlaceDetails> allPlaceDetails) {
+			ArrayList<PlacesSearchResult> allPlaces) {
 		try {
 			FileOutputStream fos = new FileOutputStream(new File(fileName));
 			ObjectOutputStream oos = new ObjectOutputStream(fos);
 			
-			for (PlaceDetails pd : allPlaceDetails) {
-				oos.writeObject(pd);
+			for (PlacesSearchResult psr : allPlaces) {
+				oos.writeObject(psr);
 			}
 			
 			oos.close();
@@ -383,9 +407,9 @@ public class Main {
 	}
 	
 	private static PlaceCluster[] 
-			kMeans(ArrayList<PlaceDetails> destinations, int days) {
+			kMeans(ArrayList<PlacesSearchResult> destinations, int days) {
 		// Create the array of clusters
-		Map<PlaceDetails, Integer> placeClusters = new HashMap<>();
+		Map<PlacesSearchResult, Integer> placeClusters = new HashMap<>();
 		PlaceCluster[] clusters = new PlaceCluster[days];
 		
 		for (int i = 0; i < days; ++i)
@@ -393,7 +417,7 @@ public class Main {
 		
 		// Copy the destination ArrayList so we can shuffle and
 		// delete elements without affecting the original
-		ArrayList<PlaceDetails> destCopy = new ArrayList<>(destinations);
+		ArrayList<PlacesSearchResult> destCopy = new ArrayList<>(destinations);
 		
 		// Shuffle the list
 		Collections.shuffle(destCopy);
@@ -401,11 +425,11 @@ public class Main {
 		for (int i = 0; i < days; ++i) {
 			double start = i * (destCopy.size() / (double) days);
 			double end = (i + 1) * (destCopy.size() / (double) days);
-			List<PlaceDetails> randomPartition =
+			List<PlacesSearchResult> randomPartition =
 					destCopy.subList((int) start, (int) end);
-			for (PlaceDetails pd : randomPartition) {
-				clusters[i].addPlace(pd);
-				placeClusters.put(pd, i);
+			for (PlacesSearchResult psr : randomPartition) {
+				clusters[i].addPlace(psr);
+				placeClusters.put(psr, i);
 			}
 			
 			clusters[i].recalculateAverage();
@@ -420,10 +444,10 @@ public class Main {
 		while (!done) {
 			done = true;
 			
-			Set<PlaceDetails> keys = placeClusters.keySet();
-			for (PlaceDetails pd : keys) {
-				int oldClusterIdx = placeClusters.get(pd);
-				LatLng pdLatLng = pd.geometry.location;
+			Set<PlacesSearchResult> keys = placeClusters.keySet();
+			for (PlacesSearchResult psr : keys) {
+				int oldClusterIdx = placeClusters.get(psr);
+				LatLng pdLatLng = psr.geometry.location;
 				int nearestClusterIdx = 0;
 				double nearestClusterDist = EuclideanDistance(pdLatLng, clusters[0].getAvgValue());
 				
@@ -438,7 +462,7 @@ public class Main {
 				
 				if (oldClusterIdx != nearestClusterIdx) {
 					done = false;
-					placeClusters.put(pd, nearestClusterIdx);
+					placeClusters.put(psr, nearestClusterIdx);
 				}
 			}
 			
@@ -448,9 +472,9 @@ public class Main {
 			}
 			
 			// Put each place in its new cluster
-			for (PlaceDetails pd : keys) {
-				int idx = placeClusters.get(pd);
-				clusters[idx].addPlace(pd);
+			for (PlacesSearchResult psr : keys) {
+				int idx = placeClusters.get(psr);
+				clusters[idx].addPlace(psr);
 			}
 			
 			// Recalculate averages for each cluster
@@ -462,7 +486,7 @@ public class Main {
 		ArrayList<PlaceCluster> nonEmptyClusters = new ArrayList<>();
 		
 		for (int i = 0; i < clusters.length; ++i) {
-			ArrayList<PlaceDetails> places = clusters[i].getPlaces();
+			ArrayList<PlacesSearchResult> places = clusters[i].getPlaces();
 			
 			if (places.size() > 0)
 				nonEmptyClusters.add(clusters[i]);

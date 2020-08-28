@@ -84,6 +84,11 @@ public class Main {
 				System.out.print("Enter filename: ");
 				String fileName = scanner.nextLine();
 				
+				// For later when we save the image file
+				// make sure it has a filename which is the same
+				// as the file we stored the data in.
+				input = fileName;
+				
 				writeDataToFile(fileName, allPlaceDetails);
 			}
 			
@@ -344,25 +349,22 @@ public class Main {
 				return result;
 			}
 			catch (ClassNotFoundException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 			finally {
 				ois.close();
 			}
 		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		
 		return null;
 	}
 	
-	private static void writeDataToFile(String fileName, ArrayList<PlaceDetails> allPlaceDetails) {
-		// TODO Auto-generated method stub
+	private static void writeDataToFile(String fileName,
+			ArrayList<PlaceDetails> allPlaceDetails) {
 		try {
 			FileOutputStream fos = new FileOutputStream(new File(fileName));
 			ObjectOutputStream oos = new ObjectOutputStream(fos);
@@ -374,10 +376,8 @@ public class Main {
 			oos.close();
 			fos.close();
 		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}

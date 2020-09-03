@@ -68,18 +68,21 @@ public class Main {
 			System.out.print("Enter the search radius in miles (max 31): ");
 			radius = Integer.parseInt(scanner.nextLine()) * 1609;
 			
+			PlaceType[] placeTypes = {PlaceType.AMUSEMENT_PARK,
+					PlaceType.AQUARIUM, PlaceType.ART_GALLERY,
+					PlaceType.MUSEUM, PlaceType.PARK,
+					PlaceType.STADIUM, PlaceType.TOURIST_ATTRACTION,
+					PlaceType.ZOO};
+			allPlaces = new ArrayList<>();
+			
 			System.out.println();
-			System.out.println("Fetching tourist destinations...");
-			ArrayList<PlacesSearchResult> touristPlaces = getNewData(context, input,
-					radius, PlaceType.TOURIST_ATTRACTION);
-			System.out.println("Fetching park destinations...");
-			ArrayList<PlacesSearchResult> parkPlaces = getNewData(context, input, radius,
-					PlaceType.PARK);
-			System.out.println("Fetching restaurant destinations...");
-			ArrayList<PlacesSearchResult> restaurantPlaces = getNewData(context, input, radius,
-					PlaceType.RESTAURANT);
-			allPlaces = mergeDataLists(touristPlaces, parkPlaces);
-			allPlaces = mergeDataLists(allPlaces, restaurantPlaces);
+			for (int i = 0; i < placeTypes.length; ++i) {
+				System.out.println("Fetching " + placeTypes[i].name() + "s...");
+				ArrayList<PlacesSearchResult> results = getNewData(context,
+						input, radius, placeTypes[i]);
+				allPlaces = mergeDataLists(allPlaces, results);
+			}
+			
 			Collections.sort(allPlaces, new ReviewDescComparator());
 			
 			boolean storeData;
@@ -337,7 +340,7 @@ public class Main {
 					
 					if (places.nextPageToken != null) {
 						// Page token not valid right away
-						Thread.sleep(4000);
+						Thread.sleep(2000);
 						moreResults = true;
 						places = PlacesApi.nearbySearchNextPage(context,
 								places.nextPageToken).await();

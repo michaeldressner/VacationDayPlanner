@@ -3,7 +3,6 @@ package VacationDayPlanner;
 import java.util.ArrayList;
 
 import com.google.maps.model.LatLng;
-import com.google.maps.model.PlaceDetails;
 import com.google.maps.model.PlacesSearchResult;
 
 public class PlaceCluster {

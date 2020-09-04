@@ -34,6 +34,7 @@ import com.google.maps.model.PlaceDetails;
 import com.google.maps.model.PlaceType;
 import com.google.maps.model.PlacesSearchResponse;
 import com.google.maps.model.PlacesSearchResult;
+import com.google.maps.model.RankBy;
 import com.google.maps.model.Size;
 
 public class Main {
@@ -328,7 +329,7 @@ public class Main {
 				// Search nearby
 				PlacesSearchResponse places = PlacesApi
 						.nearbySearchQuery(context, location)
-						.type(type).radius(radius)
+						.type(type).radius(radius).rankby(RankBy.PROMINENCE)
 						.await();
 				boolean moreResults = false;
 				do { 

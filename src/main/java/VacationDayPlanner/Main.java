@@ -458,10 +458,12 @@ public class Main {
 				int oldClusterIdx = placeClusters.get(psr);
 				LatLng pdLatLng = psr.geometry.location;
 				int nearestClusterIdx = 0;
-				double nearestClusterDist = EuclideanDistance(pdLatLng, clusters[0].getAvgValue());
+				double nearestClusterDist = Location
+						.EuclideanDistance(pdLatLng, clusters[0].getAvgValue());
 				
 				for (int i = 1; i < days; ++i) {
-					double dist = EuclideanDistance(pdLatLng, clusters[i].getAvgValue());
+					double dist = Location.
+							EuclideanDistance(pdLatLng, clusters[i].getAvgValue());
 					
 					if (dist < nearestClusterDist) {
 						nearestClusterDist = dist;

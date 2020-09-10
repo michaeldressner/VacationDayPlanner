@@ -50,7 +50,9 @@ public class Main {
 		System.out.println("Choose one of the following options: ");
 		System.out.println("1. Run a new dataset from the web (uses a lot of"
 				+ " API calls but saves the data in the process)");
-		System.out.println("2. Run a dataset from a file ");
+		System.out.println("2. Run a dataset from a file");
+		//System.out.println("3. Manually enter latitude/longitude and place "
+		//		+ "names");
 		do {
 			System.out.print("Enter your choice: ");
 			mainMenuChoice = Integer.parseInt(scanner.nextLine());
@@ -86,28 +88,7 @@ public class Main {
 			
 			Collections.sort(allPlaces, new ReviewDescComparator());
 			
-			boolean storeData;
-			String storeChoice;
-			do {
-				System.out.print("Would you like to store this data to a file"
-						+ " (y/n): ");
-				storeChoice = scanner.nextLine();
-			} while (!storeChoice.equalsIgnoreCase("y") &&
-					!storeChoice.equalsIgnoreCase("n"));
-			
-			storeData = storeChoice.equalsIgnoreCase("y") ? true : false;
-			if (storeData) {
-				System.out.print("Enter filename: ");
-				String fileName = scanner.nextLine();
-				
-				// For later when we save the image file
-				// make sure it has a filename which is the same
-				// as the file we stored the data in.
-				input = fileName;
-				
-				writeDataToFile(fileName, allPlaces);
-			}
-			
+			promptAndStoreData(scanner, allPlaces);
 		}
 		else if (mainMenuChoice == 2) {
 			System.out.print("Enter a file name: ");
@@ -121,34 +102,37 @@ public class Main {
 					"How did this even happen?");
 		}
 		
-		// Ask the user if they would like to go to each
-		// places and make a list.
 		ArrayList<PlacesSearchResult> destinations =
 				new ArrayList<>();
-		for (PlacesSearchResult psr : allPlaces) {
-			System.out.println();
-			System.out.println("Would you like to go to the following"
-					+ " place?");
-			System.out.println(placesSearchResultToString(psr));
-			
-			String yesNoQuit;
-			do {
-					System.out.print("(y/n or q to stop entering"
-							+ " destinations): ");
-					yesNoQuit = scanner.nextLine();
-			} while (!yesNoQuit.equalsIgnoreCase("y") &&
-					!yesNoQuit.equalsIgnoreCase("n") &&
-					!yesNoQuit.equalsIgnoreCase("q"));
-			
-			if (yesNoQuit.equalsIgnoreCase("y")) {
-				destinations.add(psr);
-				System.out.println(psr.name + " added to destinations");
-			}
-			else if (yesNoQuit.equalsIgnoreCase("q")) {
+		
+		if (mainMenuChoice == 1 || mainMenuChoice == 2) {
+			// Ask the user if they would like to go to each
+			// places and make a list.
+			for (PlacesSearchResult psr : allPlaces) {
 				System.out.println();
-				break;
+				System.out.println("Would you like to go to the following"
+						+ " place?");
+				System.out.println(placesSearchResultToString(psr));
+				
+				String yesNoQuit;
+				do {
+						System.out.print("(y/n or q to stop entering"
+								+ " destinations): ");
+						yesNoQuit = scanner.nextLine();
+				} while (!yesNoQuit.equalsIgnoreCase("y") &&
+						!yesNoQuit.equalsIgnoreCase("n") &&
+						!yesNoQuit.equalsIgnoreCase("q"));
+				
+				if (yesNoQuit.equalsIgnoreCase("y")) {
+					destinations.add(psr);
+					System.out.println(psr.name + " added to destinations");
+				}
+				else if (yesNoQuit.equalsIgnoreCase("q")) {
+					System.out.println();
+					break;
+				}
+				System.out.println();
 			}
-			System.out.println();
 		}
 		
 		int days;
@@ -160,12 +144,9 @@ public class Main {
 		
 		PlaceCluster[] clusters = kMeans(destinations, days);
 		
-		System.out.println("Your input was grouped into "
-				+ clusters.length + " clusters: ");
-		
 		for (int i = 0; i < clusters.length; ++i) {
 			System.out.println();
-			System.out.println("Cluster " + (i + 1) + ":");
+			System.out.println("Day " + (i + 1) + ":");
 			
 			for (PlacesSearchResult psr : clusters[i].getPlaces()) {
 				System.out.println(psr.name);
@@ -224,7 +205,9 @@ public class Main {
 			
 			try {
 				ImageResult imgResult = request.await();
-				FileOutputStream fos = new FileOutputStream(input + ".png");
+				System.out.print("Enter a file name for the image: ");
+				String fileName = scanner.nextLine();
+				FileOutputStream fos = new FileOutputStream(fileName + ".png");
 				OutputStream out = new BufferedOutputStream(fos);
 				out.write(imgResult.imageData);
 				fos.close();
@@ -291,7 +274,7 @@ public class Main {
 		
 		System.out.print(welcome);
 	}
-
+	
 	private static String placesSearchResultToString(PlacesSearchResult psr) {
 		// Convert PlacesSearchResult to string
 		StringBuilder result = new StringBuilder();
@@ -387,6 +370,30 @@ public class Main {
 		}
 		
 		return null;
+	}
+	
+	/**
+	 * Returns file name
+	 * @param allPlaces 
+	 */
+	private static void promptAndStoreData(Scanner scanner,
+			ArrayList<PlacesSearchResult> allPlaces) {
+		boolean storeData;
+		String storeChoice, fileName;
+		do {
+			System.out.print("Would you like to store this data to a file"
+					+ " (y/n): ");
+			storeChoice = scanner.nextLine();
+		} while (!storeChoice.equalsIgnoreCase("y") &&
+				!storeChoice.equalsIgnoreCase("n"));
+		
+		storeData = storeChoice.equalsIgnoreCase("y") ? true : false;
+		if (storeData) {
+			System.out.print("Enter filename: ");
+			fileName = scanner.nextLine();
+			
+			writeDataToFile(fileName, allPlaces);
+		}
 	}
 	
 	private static void writeDataToFile(String fileName,

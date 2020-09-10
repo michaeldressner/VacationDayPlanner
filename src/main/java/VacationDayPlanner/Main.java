@@ -537,9 +537,4 @@ public class Main {
 		
 		return largest;
 	}
-
-	private static double EuclideanDistance(LatLng l1, LatLng l2) {
-		return Math.sqrt(Math.pow(l2.lat - l1.lat, 2.0) + 
-				Math.pow(l2.lng - l1.lng, 2.0));
-	}
 }

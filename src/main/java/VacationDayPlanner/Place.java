@@ -5,16 +5,14 @@ import java.io.Serializable;
 public class Place implements Serializable {
 	private static final long serialVersionUID = -7677084253002512358L;
 	private String name;
-	private double lat;
-	private double lng;
+	private Location location;
 	private int numRatings;
 	private double rating;
 	private String vicinity;
 	
 	public Place(String name, double lat, double lng) {
 		this.name = name;
-		this.lat = lat;
-		this.lng = lng;
+		this.location = new Location(lat, lng);
 		this.numRatings = -1;
 		this.rating = 0.0;
 		this.vicinity = "";
@@ -23,8 +21,7 @@ public class Place implements Serializable {
 	public Place(String name, double lat, double lng, int numRatings,
 			double rating, String vicinity) {
 		this.name = name;
-		this.lat = lat;
-		this.lng = lng;
+		this.location = new Location(lat, lng);
 		this.numRatings = numRatings;
 		this.rating = rating;
 		this.vicinity = vicinity;
@@ -32,9 +29,7 @@ public class Place implements Serializable {
 	
 	public String getName() { return name; }
 	
-	public double getLat() { return lat; }
-	
-	public double getLng() { return lng; }
+	public Location getLocation() { return location; }
 	
 	public int getNumRatings() { return numRatings; }
 	

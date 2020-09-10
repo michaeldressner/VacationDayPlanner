@@ -1,6 +1,9 @@
 package VacationDayPlanner;
 
-public class Place {
+import java.io.Serializable;
+
+public class Place implements Serializable {
+	private static final long serialVersionUID = -7677084253002512358L;
 	private String name;
 	private double lat;
 	private double lng;

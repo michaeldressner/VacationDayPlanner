@@ -142,7 +142,7 @@ public class Main {
 			days = Integer.parseInt(scanner.nextLine());
 		} while (days > destinations.size() || days < 1);
 		
-		PlaceCluster[] clusters = kMeans(destinations, days);
+		PlaceCluster[] clusters = PlaceCluster.kMeans(destinations, days);
 		
 		for (int i = 0; i < clusters.length; ++i) {
 			System.out.println();

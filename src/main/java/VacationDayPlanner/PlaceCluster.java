@@ -2,49 +2,46 @@ package VacationDayPlanner;
 
 import java.util.ArrayList;
 
-import com.google.maps.model.LatLng;
-import com.google.maps.model.PlacesSearchResult;
-
 public class PlaceCluster {
-	private ArrayList<PlacesSearchResult> items;
-	private LatLng avgLoc;
+	private ArrayList<Place> places;
+	private Location avgLoc;
 	
 	public PlaceCluster() {
-		items = new ArrayList<>();
-		avgLoc = new LatLng(0.0, 0.0);
+		places = new ArrayList<>();
+		avgLoc = new Location(0.0, 0.0);
 	}
 	
-	public void addPlace(PlacesSearchResult psr) {
-		items.add(psr);
+	public void addPlace(Place p) {
+		places.add(p);
 	}
 	
 	public void recalculateAverage() {
 		double totalLat = 0.0, totalLng = 0.0,
 				avgLat, avgLng;
 		
-		for (PlacesSearchResult psr : items) {
-			LatLng location = psr.geometry.location;
+		for (Place p : places) {
+			Location location = p.getLocation();
 			
-			totalLat += location.lat;
-			totalLng += location.lng;
+			totalLat += location.getLat();
+			totalLng += location.getLng();
 		}
 		
-		avgLat = totalLat / items.size();
-		avgLng = totalLng / items.size();
+		avgLat = totalLat / places.size();
+		avgLng = totalLng / places.size();
 		
-		avgLoc = new LatLng(avgLat, avgLng);
+		avgLoc = new Location(avgLat, avgLng);
 	}
 	
-	public LatLng getAvgValue() {
+	public Location getAvgValue() {
 		return avgLoc;
 	}
 	
-	public ArrayList<PlacesSearchResult> getPlaces() {
-		return new ArrayList<PlacesSearchResult>(items);
+	public ArrayList<Place> getPlaces() {
+		return new ArrayList<>(places);
 	}
 	
 	public void reset() {
-		items.clear();
-		avgLoc = new LatLng(0.0, 0.0);
+		places.clear();
+		avgLoc = new Location(0.0, 0.0);
 	}
 }

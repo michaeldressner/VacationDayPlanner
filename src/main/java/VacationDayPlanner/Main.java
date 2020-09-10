@@ -42,7 +42,7 @@ public class Main {
 		Scanner scanner = new Scanner(System.in);
 		int mainMenuChoice, radius;
 		String apiKey, input;
-		ArrayList<PlacesSearchResult> allPlaces;
+		ArrayList<Place> allPlaces;
 		GeoApiContext context = null;
 		
 		printIntroduction();
@@ -81,8 +81,8 @@ public class Main {
 			System.out.println();
 			for (int i = 0; i < placeTypes.length; ++i) {
 				System.out.println("Fetching " + placeTypes[i].name() + "s...");
-				ArrayList<PlacesSearchResult> results = getNewData(context,
-						input, radius, placeTypes[i]);
+				ArrayList<Place> results = getNewData(context, input, radius,
+						placeTypes[i]);
 				allPlaces = mergeDataLists(allPlaces, results);
 			}
 			
@@ -102,17 +102,16 @@ public class Main {
 					"How did this even happen?");
 		}
 		
-		ArrayList<PlacesSearchResult> destinations =
-				new ArrayList<>();
+		ArrayList<Place> destinations = new ArrayList<>();
 		
 		if (mainMenuChoice == 1 || mainMenuChoice == 2) {
 			// Ask the user if they would like to go to each
 			// places and make a list.
-			for (PlacesSearchResult psr : allPlaces) {
+			for (Place p : allPlaces) {
 				System.out.println();
 				System.out.println("Would you like to go to the following"
 						+ " place?");
-				System.out.println(placesSearchResultToString(psr));
+				System.out.println(p.toString());
 				
 				String yesNoQuit;
 				do {
@@ -124,8 +123,8 @@ public class Main {
 						!yesNoQuit.equalsIgnoreCase("q"));
 				
 				if (yesNoQuit.equalsIgnoreCase("y")) {
-					destinations.add(psr);
-					System.out.println(psr.name + " added to destinations");
+					destinations.add(p);
+					System.out.println(p.getName() + " added to destinations");
 				}
 				else if (yesNoQuit.equalsIgnoreCase("q")) {
 					System.out.println();
@@ -148,8 +147,8 @@ public class Main {
 			System.out.println();
 			System.out.println("Day " + (i + 1) + ":");
 			
-			for (PlacesSearchResult psr : clusters[i].getPlaces()) {
-				System.out.println(psr.name);
+			for (Place p : clusters[i].getPlaces()) {
+				System.out.println(p.getName());
 			}
 		}
 		
@@ -173,13 +172,13 @@ public class Main {
 						.apiKey(apiKey).build();
 			}
 			
-			// Lets say 500 x 500 for now
-			Size size = new Size(500, 500);
+			// Lets say 700 x 700 for now
+			Size size = new Size(700, 700);
 			
 			// Add the markers
 			ArrayList<Markers> markerGroups = new ArrayList<>();
 			for (int i = 0; i < clusters.length; ++i) {
-				ArrayList<PlacesSearchResult> places = clusters[i].getPlaces();
+				ArrayList<Place> places = clusters[i].getPlaces();
 				Markers markers = new Markers();
 				
 				// Random color code
@@ -189,8 +188,9 @@ public class Main {
 		        
 				markers.color(color);
 				
-				for (PlacesSearchResult psr : places) {
-					markers.addLocation(psr.geometry.location);
+				for (Place p : places) {
+					Location loc = p.getLocation();
+					markers.addLocation(new LatLng(loc.getLat(), loc.getLng()));
 				}
 				
 				markerGroups.add(markers);
@@ -225,74 +225,11 @@ public class Main {
 		if (context != null)
 			context.shutdown();
 	}
-
-	private static ArrayList<PlacesSearchResult> mergeDataLists(
-			ArrayList<PlacesSearchResult> l1,
-			ArrayList<PlacesSearchResult> l2) {
-			Set<PlacesSearchResult> mergedSet = new TreeSet<>(
-				new Comparator<PlacesSearchResult>() {
-					@Override
-					public int compare(PlacesSearchResult psr1,
-							PlacesSearchResult psr2) {
-						return psr1.placeId.compareTo(psr2.placeId);
-					}
-					
-				});
-		ArrayList<PlacesSearchResult> result = new ArrayList<>();
-		
-		mergedSet.addAll(l1);
-		mergedSet.addAll(l2);
-		
-		result.addAll(mergedSet);
-		return result;
-	}
-
-	private static class ReviewDescComparator
-			implements Comparator<PlacesSearchResult> {
-		@Override
-		public int compare(PlacesSearchResult pd1, PlacesSearchResult pd2) {
-			return pd2.userRatingsTotal - pd1.userRatingsTotal;
-		}
-	}
 	
-	private static void printIntroduction() {
-		String welcome = "Welcome to Vacation Day Planner\n"
-				+ "If used correctly, this tool can be used to plan where to\n"
-				+ "visit on a vacation to a specific destination, as well as\n"
-				+ "discover new tourist attractions in the process. In order\n"
-				+ "to use this program correctly, keep the following in mind:\n"
-				+ "\n"
-				+ "1. This program groups the locations\n"
-				+ "   that you would like to go visit into clusters of places\n"
-				+ "   that are close to one another. In some cases, you might\n"
-				+ "   find there are too many things on the list to reasonably\n"
-				+ "   fit into an actual day, so it is up to you to make a\n"
-				+ "   reasonable day schedule from the output of the program.\n"
-				+ "   Although this is not a scheduling app perse, it\n"
-				+ "   might be at some point in the future. It still is useful if\n"
-				+ "   used appropriately.\n";
-		
-		System.out.print(welcome);
-	}
-	
-	private static String placesSearchResultToString(PlacesSearchResult psr) {
-		// Convert PlacesSearchResult to string
-		StringBuilder result = new StringBuilder();
-		// Add place name
-		result = result.append(psr.name + "\n");
-		
-		// Add address
-		if (psr.formattedAddress != null)
-			result = result.append(": " + psr.formattedAddress + "\n");
-		
-		result = result.append("Number of ratings: " + psr.userRatingsTotal +
-				" Rating: " + psr.rating + "\n");
-
-		return result.toString();
-	}
-	
-	private static ArrayList<PlacesSearchResult> getNewData(
+	private static ArrayList<Place> getNewData(
 			GeoApiContext context, String input, int radius, PlaceType type) {
+		
+		
 		try {
 			PlacesSearchResult[] results = PlacesApi.findPlaceFromText(context,
 					input, FindPlaceFromTextRequest.InputType.TEXT_QUERY)
@@ -331,7 +268,16 @@ public class Main {
 						moreResults = false;
 				} while (moreResults);
 				
-				return allPlaces;
+				ArrayList<Place> placeList = new ArrayList<>();
+				
+				for (PlacesSearchResult psr : allPlaces) {
+					placeList.add(new Place(psr.placeId, psr.name,
+							psr.geometry.location.lat,
+							psr.geometry.location.lng, psr.userRatingsTotal,
+							psr.rating, psr.vicinity));
+				}
+				
+				return placeList;
 			}
 		} catch (IOException | ApiException | InterruptedException e) {
 			e.printStackTrace();
@@ -339,9 +285,55 @@ public class Main {
 		
 		return null;
 	}
+
+	private static ArrayList<Place> mergeDataLists( ArrayList<Place> l1,
+			ArrayList<Place> l2) {
+		Set<Place> mergedSet = new TreeSet<>(
+				new Comparator<Place>() {
+					@Override
+					public int compare(Place p1, Place p2) {
+						return p1.getId().compareTo(p2.getId());
+					}
+				}
+		);
+		ArrayList<Place> result = new ArrayList<>();
+		
+		mergedSet.addAll(l1);
+		mergedSet.addAll(l2);
+		
+		result.addAll(mergedSet);
+		return result;
+	}
+
+	private static class ReviewDescComparator implements Comparator<Place> {
+		@Override
+		public int compare(Place pd1, Place pd2) {
+			return pd2.getNumRatings() - pd1.getNumRatings();
+		}
+	}
 	
-	private static ArrayList<PlacesSearchResult> getDataFromFile(String fileName) {
-		ArrayList<PlacesSearchResult> result = new ArrayList<>();
+	private static void printIntroduction() {
+		String welcome = "Welcome to Vacation Day Planner\n"
+				+ "If used correctly, this tool can be used to plan where to\n"
+				+ "visit on a vacation to a specific destination, as well as\n"
+				+ "discover new tourist attractions in the process. In order\n"
+				+ "to use this program correctly, keep the following in mind:\n"
+				+ "\n"
+				+ "1. This program groups the locations\n"
+				+ "   that you would like to go visit into clusters of places\n"
+				+ "   that are close to one another. In some cases, you might\n"
+				+ "   find there are too many things on the list to reasonably\n"
+				+ "   fit into an actual day, so it is up to you to make a\n"
+				+ "   reasonable day schedule from the output of the program.\n"
+				+ "   Although this is not a scheduling app perse, it\n"
+				+ "   might be at some point in the future. It still is useful if\n"
+				+ "   used appropriately.\n";
+		
+		System.out.print(welcome);
+	}
+	
+	private static ArrayList<Place> getDataFromFile(String fileName) {
+		ArrayList<Place> result = new ArrayList<>();
 		
 		try {
 			FileInputStream fis = new FileInputStream(fileName);
@@ -349,8 +341,8 @@ public class Main {
 			
 			try {
 				while (true) {
-					PlacesSearchResult psr = (PlacesSearchResult) ois.readObject();
-					result.add(psr);
+					Place p = (Place) ois.readObject();
+					result.add(p);
 				}
 			}
 			catch (EOFException e) {
@@ -377,7 +369,7 @@ public class Main {
 	 * @param allPlaces 
 	 */
 	private static void promptAndStoreData(Scanner scanner,
-			ArrayList<PlacesSearchResult> allPlaces) {
+			ArrayList<Place> allPlaces) {
 		boolean storeData;
 		String storeChoice, fileName;
 		do {

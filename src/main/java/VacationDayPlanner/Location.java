@@ -1,8 +1,9 @@
 package VacationDayPlanner;
 
-import com.google.maps.model.LatLng;
+import java.io.Serializable;
 
-public class Location {
+public class Location implements Serializable {
+	private static final long serialVersionUID = 1892531909175230310L;
 	private double lat;
 	private double lng;
 	

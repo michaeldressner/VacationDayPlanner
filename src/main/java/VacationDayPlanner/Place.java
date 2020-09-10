@@ -8,8 +8,6 @@ import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.util.ArrayList;
 
-import com.google.maps.model.PlacesSearchResult;
-
 public class Place implements Serializable {
 	private static final long serialVersionUID = -7677084253002512358L;
 	private String id;
@@ -38,8 +36,10 @@ public class Place implements Serializable {
 		this.vicinity = vicinity;
 	}
 	
-	public String getName() { return name; }
+	public String getId() { return id; }
 	
+	public String getName() { return name; }
+
 	public Location getLocation() { return location; }
 	
 	public int getNumRatings() { return numRatings; }
@@ -73,5 +73,22 @@ public class Place implements Serializable {
 		
 		Place p2 = (Place) p;
 		return this.id.equals(p2.id);
+	}
+	
+	@Override
+	public String toString() {
+		// Convert PlacesSearchResult to string
+		StringBuilder result = new StringBuilder();
+		// Add place name
+		result = result.append(name + "\n");
+		
+		// Add address
+		if (vicinity != null)
+			result = result.append(vicinity + "\n");
+		
+		result = result.append("Number of ratings: " + numRatings +
+				" Rating: " + rating + "\n");
+
+		return result.toString();
 	}
 }

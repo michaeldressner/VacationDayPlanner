@@ -1,6 +1,14 @@
 package VacationDayPlanner;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.ObjectOutputStream;
 import java.io.Serializable;
+import java.util.ArrayList;
+
+import com.google.maps.model.PlacesSearchResult;
 
 public class Place implements Serializable {
 	private static final long serialVersionUID = -7677084253002512358L;
@@ -36,4 +44,23 @@ public class Place implements Serializable {
 	public double getRating() { return rating; }
 	
 	public String getVicinity() { return vicinity; }
+	
+	public static void writeDataToFile(String fileName,
+			ArrayList<Place> places) {
+		try {
+			FileOutputStream fos = new FileOutputStream(new File(fileName));
+			ObjectOutputStream oos = new ObjectOutputStream(fos);
+			
+			for (Place p : places) {
+				oos.writeObject(p);
+			}
+			
+			oos.close();
+			fos.close();
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
 }

@@ -392,26 +392,7 @@ public class Main {
 			System.out.print("Enter filename: ");
 			fileName = scanner.nextLine();
 			
-			writeDataToFile(fileName, allPlaces);
-		}
-	}
-	
-	private static void writeDataToFile(String fileName,
-			ArrayList<PlacesSearchResult> allPlaces) {
-		try {
-			FileOutputStream fos = new FileOutputStream(new File(fileName));
-			ObjectOutputStream oos = new ObjectOutputStream(fos);
-			
-			for (PlacesSearchResult psr : allPlaces) {
-				oos.writeObject(psr);
-			}
-			
-			oos.close();
-			fos.close();
-		} catch (FileNotFoundException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
+			Place.writeDataToFile(fileName, allPlaces);
 		}
 	}
 }

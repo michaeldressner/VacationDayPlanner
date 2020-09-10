@@ -525,18 +525,4 @@ public class Main {
 		
 		return clusterList;
 	}
-	
-	private static PlaceCluster getLargestPlaceCluster(ArrayList<PlaceCluster> clusters) {
-		PlaceCluster largest = new PlaceCluster();
-		int maxSize = 0;
-		
-		for (PlaceCluster pc : clusters) {
-			if (pc.getPlaces().size() > maxSize) {
-				largest = pc;
-				maxSize = pc.getPlaces().size();
-			}
-		}
-		
-		return largest;
-	}
 }

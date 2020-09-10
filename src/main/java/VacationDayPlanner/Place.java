@@ -12,13 +12,15 @@ import com.google.maps.model.PlacesSearchResult;
 
 public class Place implements Serializable {
 	private static final long serialVersionUID = -7677084253002512358L;
+	private String id;
 	private String name;
 	private Location location;
 	private int numRatings;
 	private double rating;
 	private String vicinity;
 	
-	public Place(String name, double lat, double lng) {
+	public Place(String id, String name, double lat, double lng) {
+		this.id = id;
 		this.name = name;
 		this.location = new Location(lat, lng);
 		this.numRatings = -1;
@@ -26,8 +28,9 @@ public class Place implements Serializable {
 		this.vicinity = "";
 	}
 	
-	public Place(String name, double lat, double lng, int numRatings,
-			double rating, String vicinity) {
+	public Place(String id, String name, double lat, double lng,
+			int numRatings, double rating, String vicinity) {
+		this.id = id;
 		this.name = name;
 		this.location = new Location(lat, lng);
 		this.numRatings = numRatings;
@@ -62,5 +65,13 @@ public class Place implements Serializable {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+	}
+	
+	@Override
+	public boolean equals(Object p) {
+		if (!(p instanceof Place)) return false;
+		
+		Place p2 = (Place) p;
+		return this.id.equals(p2.id);
 	}
 }

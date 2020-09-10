@@ -2,7 +2,4 @@
 .gradle
 
 # Ignore Gradle build output directory
-bin
 build
-gradle
-META-INF

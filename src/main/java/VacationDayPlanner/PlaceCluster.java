@@ -7,9 +7,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import com.google.maps.model.LatLng;
-import com.google.maps.model.PlacesSearchResult;
-
 public class PlaceCluster {
 	private ArrayList<Place> places;
 	private Location avgLoc;

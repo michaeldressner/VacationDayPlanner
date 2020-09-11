@@ -74,16 +74,6 @@ public class Main {
 			}
 			
 			Collections.sort(allPlaces, new ReviewDescComparator());
-			
-			String fileName;
-			boolean storeData = yesNoPrompt(scanner,
-					"Would you like to store this data to a file?");
-			
-			if (storeData) {
-				fileName = stringPrompt(scanner, "Enter file name: ");
-				
-				Place.writeDataToFile(fileName, allPlaces);
-			}
 		}
 		else if (mainMenuChoice == 2) {
 			String fileName = stringPrompt(scanner, "Enter a file name: ");
@@ -98,11 +88,25 @@ public class Main {
 				
 				
 			} while (true);
+			
+			destinations = allPlaces;
 		}
 		else { // Should not happen
 			scanner.close();
 			throw new IllegalArgumentException(
 					"How did this even happen?");
+		}
+		
+		if (mainMenuChoice == 1 || mainMenuChoice == 3) {
+			String fileName;
+			boolean storeData = yesNoPrompt(scanner,
+					"Would you like to store this data to a file?");
+			
+			if (storeData) {
+				fileName = stringPrompt(scanner, "Enter file name: ");
+				
+				Place.writeDataToFile(fileName, allPlaces);
+			}
 		}
 		
 		if (mainMenuChoice == 1 || mainMenuChoice == 2) {
@@ -322,6 +326,19 @@ public class Main {
 			System.out.print(prompt);
 			input = scanner.nextLine();
 		} while (input.equals(""));
+		
+		return input;
+	}
+	
+	private static int intPrompt(Scanner scanner, String prompt) {
+		int input;
+		do {
+			try {
+				System.out.print(prompt);
+				input = Integer.parseInt(scanner.nextLine());
+				break;
+			} catch (Exception e) { }
+		} while (true);
 		
 		return input;
 	}

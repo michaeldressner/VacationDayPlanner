@@ -88,7 +88,16 @@ public class Main {
 			
 			Collections.sort(allPlaces, new ReviewDescComparator());
 			
-			promptAndStoreData(scanner, allPlaces);
+			String fileName;
+			boolean storeData = yesNoPrompt(scanner,
+					"Would you like to store this data to a file?");
+			
+			if (storeData) {
+				System.out.print("Enter filename: ");
+				fileName = scanner.nextLine();
+				
+				Place.writeDataToFile(fileName, allPlaces);
+			}
 		}
 		else if (mainMenuChoice == 2) {
 			System.out.print("Enter a file name: ");
@@ -362,24 +371,6 @@ public class Main {
 		}
 		
 		return null;
-	}
-	
-	/**
-	 * Returns file name
-	 * @param allPlaces 
-	 */
-	private static void promptAndStoreData(Scanner scanner,
-			ArrayList<Place> allPlaces) {
-		String fileName;
-		boolean storeData = yesNoPrompt(scanner,
-				"Would you like to store this data to a file?");
-		
-		if (storeData) {
-			System.out.print("Enter filename: ");
-			fileName = scanner.nextLine();
-			
-			Place.writeDataToFile(fileName, allPlaces);
-		}
 	}
 	
 	private static boolean yesNoPrompt(Scanner scanner, String prompt) {

@@ -53,8 +53,7 @@ public class Main {
 			context = new GeoApiContext.Builder()
 					.apiKey(apiKey).build();
 			
-			System.out.print("Enter a place: ");
-			String input = scanner.nextLine();
+			String input = stringPrompt(scanner, "Enter a place: ");
 			
 			// Note: converts to meters by multiplying by 1609
 			System.out.print("Enter the search radius in miles (max 31): ");
@@ -81,8 +80,7 @@ public class Main {
 					"Would you like to store this data to a file?");
 			
 			if (storeData) {
-				System.out.print("Enter filename: ");
-				fileName = scanner.nextLine();
+				fileName = stringPrompt(scanner, "Enter file name: ");
 				
 				Place.writeDataToFile(fileName, allPlaces);
 			}
@@ -161,8 +159,7 @@ public class Main {
 		
 		if (genImg) {
 			if (context == null) {
-				System.out.print("Enter your API key: ");
-				String apiKey = scanner.nextLine();
+				String apiKey = stringPrompt(scanner, "Enter your API key: ");
 				context = new GeoApiContext.Builder()
 						.apiKey(apiKey).build();
 			}
@@ -200,8 +197,8 @@ public class Main {
 			
 			try {
 				ImageResult imgResult = request.await();
-				System.out.print("Enter a file name for the image: ");
-				String fileName = scanner.nextLine();
+				String fileName = stringPrompt(scanner,
+						"Enter a file name for the image: ");
 				FileOutputStream fos = new FileOutputStream(fileName + ".png");
 				OutputStream out = new BufferedOutputStream(fos);
 				out.write(imgResult.imageData);

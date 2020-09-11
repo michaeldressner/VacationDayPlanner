@@ -53,7 +53,8 @@ public class PlaceCluster {
 		avgLoc = new Location(0.0, 0.0);
 	}
 	
-	private static PlaceCluster getLargestPlaceCluster(ArrayList<PlaceCluster> clusters) {
+	private static PlaceCluster getLargestPlaceCluster(
+			ArrayList<PlaceCluster> clusters) {
 		PlaceCluster largest = new PlaceCluster();
 		int maxSize = 0;
 		
@@ -69,7 +70,8 @@ public class PlaceCluster {
 	
 	public static PlaceCluster[] 
 			kMeans(ArrayList<Place> destinations, int days) {
-		// Create the array of clusters
+		// Create the array of clusters and a HashMap which maps places to the
+		// indices of their clusters in that array
 		Map<Place, Integer> placeClusters = new HashMap<>();
 		PlaceCluster[] clusters = new PlaceCluster[days];
 		

@@ -17,7 +17,7 @@ public class Location implements Serializable {
 	public double getLng() { return lng; }
 	
 	public static double EuclideanDistance(Location l1, Location l2) {
-		return Math.sqrt(Math.pow(l2.getLat() - l1.getLng(), 2.0) + 
-				Math.pow(l2.getLat() - l1.getLng(), 2.0));
+		return Math.sqrt(Math.pow(l2.getLat() - l1.getLat(), 2.0) + 
+				Math.pow(l2.getLng() - l1.getLng(), 2.0));
 	}
 }

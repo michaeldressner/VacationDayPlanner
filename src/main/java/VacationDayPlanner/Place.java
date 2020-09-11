@@ -6,6 +6,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 
 public class Place implements Serializable {
@@ -77,7 +78,8 @@ public class Place implements Serializable {
 	
 	@Override
 	public String toString() {
-		// Convert PlacesSearchResult to string
+		DecimalFormat df = new DecimalFormat("#.##");
+		// Convert Place to string
 		StringBuilder result = new StringBuilder();
 		// Add place name
 		result = result.append(name + "\n");
@@ -87,7 +89,7 @@ public class Place implements Serializable {
 			result = result.append(vicinity + "\n");
 		
 		result = result.append("Number of ratings: " + numRatings +
-				" Rating: " + rating + "\n");
+				" Rating: " + df.format(rating) + "\n");
 
 		return result.toString();
 	}

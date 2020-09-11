@@ -29,7 +29,8 @@ import com.google.maps.model.Size;
 public class Main {
 	public static void main(String[] args) {
 		Scanner scanner = new Scanner(System.in);
-		ArrayList<Place> allPlaces;
+		ArrayList<Place> allPlaces = new ArrayList<>();
+		ArrayList<Place> destinations = new ArrayList<>();
 		GeoApiContext context = null;
 		
 		printIntroduction();
@@ -48,8 +49,7 @@ public class Main {
 		} while (mainMenuChoice < 1 || mainMenuChoice > 2);
 		
 		if (mainMenuChoice == 1) {
-			System.out.print("Enter your API key: ");
-			String apiKey = scanner.nextLine();
+			String apiKey = stringPrompt(scanner, "Enter your API key: ");
 			context = new GeoApiContext.Builder()
 					.apiKey(apiKey).build();
 			
@@ -65,7 +65,6 @@ public class Main {
 					PlaceType.MUSEUM, PlaceType.PARK,
 					PlaceType.STADIUM, PlaceType.TOURIST_ATTRACTION,
 					PlaceType.ZOO};
-			allPlaces = new ArrayList<>();
 			
 			System.out.println();
 			for (int i = 0; i < placeTypes.length; ++i) {
@@ -89,20 +88,24 @@ public class Main {
 			}
 		}
 		else if (mainMenuChoice == 2) {
-			System.out.print("Enter a file name: ");
-			String fileName = scanner.nextLine();
+			String fileName = stringPrompt(scanner, "Enter a file name: ");
 			allPlaces = Place.getDataFromFile(fileName);
 		}
 		else if (mainMenuChoice == 3) {
-			
+			boolean quit;
+			do {
+				String placeName = stringPrompt(scanner,
+						"Enter the place name (or \"quit\"): ");
+				if (placeName.equalsIgnoreCase("quit")) break;
+				
+				
+			} while (true);
 		}
 		else { // Should not happen
 			scanner.close();
 			throw new IllegalArgumentException(
 					"How did this even happen?");
 		}
-		
-		ArrayList<Place> destinations = new ArrayList<>();
 		
 		if (mainMenuChoice == 1 || mainMenuChoice == 2) {
 			// Ask the user if they would like to go to each
@@ -314,5 +317,15 @@ public class Main {
 				!choice.equalsIgnoreCase("n"));
 		
 		return choice.equalsIgnoreCase("y") ? true : false;
+	}
+	
+	private static String stringPrompt(Scanner scanner, String prompt) {
+		String input;
+		do {
+			System.out.print(prompt);
+			input = scanner.nextLine();
+		} while (input.equals(""));
+		
+		return input;
 	}
 }

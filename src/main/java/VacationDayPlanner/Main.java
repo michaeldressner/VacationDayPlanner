@@ -38,8 +38,8 @@ public class Main {
 		System.out.println("1. Run a new dataset from the web (uses a lot of"
 				+ " API calls but saves the data in the process)");
 		System.out.println("2. Run a dataset from a file");
-		//System.out.println("3. Manually enter latitude/longitude and place "
-		//		+ "names");
+		System.out.println("3. Manually enter latitude/longitude and place "
+				+ "names (no API key required)");
 		
 		int mainMenuChoice;
 		do {
@@ -92,6 +92,9 @@ public class Main {
 			System.out.print("Enter a file name: ");
 			String fileName = scanner.nextLine();
 			allPlaces = Place.getDataFromFile(fileName);
+		}
+		else if (mainMenuChoice == 3) {
+			
 		}
 		else { // Should not happen
 			scanner.close();

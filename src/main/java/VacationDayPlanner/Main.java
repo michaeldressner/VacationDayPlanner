@@ -370,21 +370,30 @@ public class Main {
 	 */
 	private static void promptAndStoreData(Scanner scanner,
 			ArrayList<Place> allPlaces) {
-		boolean storeData;
-		String storeChoice, fileName;
-		do {
-			System.out.print("Would you like to store this data to a file"
-					+ " (y/n): ");
-			storeChoice = scanner.nextLine();
-		} while (!storeChoice.equalsIgnoreCase("y") &&
-				!storeChoice.equalsIgnoreCase("n"));
+		String fileName;
+		boolean storeData = yesNoPrompt(scanner,
+				"Would you like to store this data to a file?");
 		
-		storeData = storeChoice.equalsIgnoreCase("y") ? true : false;
 		if (storeData) {
 			System.out.print("Enter filename: ");
 			fileName = scanner.nextLine();
 			
 			Place.writeDataToFile(fileName, allPlaces);
 		}
+	}
+	
+	private static boolean yesNoPrompt(Scanner scanner, String prompt) {
+		String choice;
+		do {
+			System.out.print(prompt + " (y/n): ");
+			choice = scanner.nextLine();
+		} while (!choice.equalsIgnoreCase("y") &&
+				!choice.equalsIgnoreCase("n"));
+		
+		return choice.equalsIgnoreCase("y") ? true : false;
+	}
+	
+	private static String getInputString(Scanner scanner, String prompt) {
+		return null;
 	}
 }

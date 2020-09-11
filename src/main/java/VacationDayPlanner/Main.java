@@ -1,25 +1,14 @@
 package VacationDayPlanner;
 
 import java.io.BufferedOutputStream;
-import java.io.EOFException;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 import java.util.Random;
 import java.util.Scanner;
-import java.util.Set;
-import java.util.TreeSet;
 
 import com.google.maps.FindPlaceFromTextRequest;
 import com.google.maps.GeoApiContext;
@@ -40,8 +29,6 @@ import com.google.maps.model.Size;
 public class Main {
 	public static void main(String[] args) {
 		Scanner scanner = new Scanner(System.in);
-		int mainMenuChoice, radius;
-		String apiKey, input;
 		ArrayList<Place> allPlaces;
 		GeoApiContext context = null;
 		
@@ -53,6 +40,8 @@ public class Main {
 		System.out.println("2. Run a dataset from a file");
 		//System.out.println("3. Manually enter latitude/longitude and place "
 		//		+ "names");
+		
+		int mainMenuChoice;
 		do {
 			System.out.print("Enter your choice: ");
 			mainMenuChoice = Integer.parseInt(scanner.nextLine());
@@ -60,16 +49,16 @@ public class Main {
 		
 		if (mainMenuChoice == 1) {
 			System.out.print("Enter your API key: ");
-			apiKey = scanner.nextLine();
+			String apiKey = scanner.nextLine();
 			context = new GeoApiContext.Builder()
 					.apiKey(apiKey).build();
 			
 			System.out.print("Enter a place: ");
-			input = scanner.nextLine();
+			String input = scanner.nextLine();
 			
 			// Note: converts to meters by multiplying by 1609
 			System.out.print("Enter the search radius in miles (max 31): ");
-			radius = Integer.parseInt(scanner.nextLine()) * 1609;
+			int radius = Integer.parseInt(scanner.nextLine()) * 1609;
 			
 			PlaceType[] placeTypes = {PlaceType.AMUSEMENT_PARK,
 					PlaceType.AQUARIUM, PlaceType.ART_GALLERY,
@@ -83,7 +72,7 @@ public class Main {
 				System.out.println("Fetching " + placeTypes[i].name() + "s...");
 				ArrayList<Place> results = getNewData(context, input, radius,
 						placeTypes[i]);
-				allPlaces = mergeDataLists(allPlaces, results);
+				allPlaces = Place.mergeDataLists(allPlaces, results);
 			}
 			
 			Collections.sort(allPlaces, new ReviewDescComparator());
@@ -102,8 +91,7 @@ public class Main {
 		else if (mainMenuChoice == 2) {
 			System.out.print("Enter a file name: ");
 			String fileName = scanner.nextLine();
-			input = fileName;
-			allPlaces = getDataFromFile(fileName);
+			allPlaces = Place.getDataFromFile(fileName);
 		}
 		else { // Should not happen
 			scanner.close();
@@ -162,21 +150,13 @@ public class Main {
 		}
 		
 		System.out.println();
-		boolean genImg;
-		String genChoice;
-		do {
-			System.out.print("Would you like to generate an image file?"
-					+ " (y/n): ");
-			genChoice = scanner.nextLine();
-		} while (!genChoice.equalsIgnoreCase("y") &&
-				!genChoice.equalsIgnoreCase("n"));
-		
-		genImg = genChoice.equalsIgnoreCase("y") ? true : false;
+		boolean genImg = yesNoPrompt(scanner,
+				"Would you like to generate an image file?");
 		
 		if (genImg) {
 			if (context == null) {
 				System.out.print("Enter your API key: ");
-				apiKey = scanner.nextLine();
+				String apiKey = scanner.nextLine();
 				context = new GeoApiContext.Builder()
 						.apiKey(apiKey).build();
 			}
@@ -295,25 +275,6 @@ public class Main {
 		return null;
 	}
 
-	private static ArrayList<Place> mergeDataLists( ArrayList<Place> l1,
-			ArrayList<Place> l2) {
-		Set<Place> mergedSet = new TreeSet<>(
-				new Comparator<Place>() {
-					@Override
-					public int compare(Place p1, Place p2) {
-						return p1.getId().compareTo(p2.getId());
-					}
-				}
-		);
-		ArrayList<Place> result = new ArrayList<>();
-		
-		mergedSet.addAll(l1);
-		mergedSet.addAll(l2);
-		
-		result.addAll(mergedSet);
-		return result;
-	}
-
 	private static class ReviewDescComparator implements Comparator<Place> {
 		@Override
 		public int compare(Place pd1, Place pd2) {
@@ -341,38 +302,6 @@ public class Main {
 		System.out.print(welcome);
 	}
 	
-	private static ArrayList<Place> getDataFromFile(String fileName) {
-		ArrayList<Place> result = new ArrayList<>();
-		
-		try {
-			FileInputStream fis = new FileInputStream(fileName);
-			ObjectInputStream ois = new ObjectInputStream(fis);
-			
-			try {
-				while (true) {
-					Place p = (Place) ois.readObject();
-					result.add(p);
-				}
-			}
-			catch (EOFException e) {
-				// No more PlaceDetail records in the file
-				return result;
-			}
-			catch (ClassNotFoundException e) {
-				e.printStackTrace();
-			}
-			finally {
-				ois.close();
-			}
-		} catch (FileNotFoundException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-		
-		return null;
-	}
-	
 	private static boolean yesNoPrompt(Scanner scanner, String prompt) {
 		String choice;
 		do {
@@ -382,9 +311,5 @@ public class Main {
 				!choice.equalsIgnoreCase("n"));
 		
 		return choice.equalsIgnoreCase("y") ? true : false;
-	}
-	
-	private static String getInputString(Scanner scanner, String prompt) {
-		return null;
 	}
 }

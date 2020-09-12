@@ -44,9 +44,8 @@ public class Main {
 		
 		int mainMenuChoice;
 		do {
-			System.out.print("Enter your choice: ");
-			mainMenuChoice = Integer.parseInt(scanner.nextLine());
-		} while (mainMenuChoice < 1 || mainMenuChoice > 2);
+			mainMenuChoice = intPrompt(scanner, "Enter your choice: ");
+		} while (mainMenuChoice < 1 || mainMenuChoice > 3);
 		
 		if (mainMenuChoice == 1) {
 			String apiKey = stringPrompt(scanner, "Enter your API key: ");
@@ -56,8 +55,8 @@ public class Main {
 			String input = stringPrompt(scanner, "Enter a place: ");
 			
 			// Note: converts to meters by multiplying by 1609
-			System.out.print("Enter the search radius in miles (max 31): ");
-			int radius = Integer.parseInt(scanner.nextLine()) * 1609;
+			int radius = intPrompt(scanner,
+					"Enter the search radius in miles (max 31): ") * 1609;
 			
 			PlaceType[] placeTypes = {PlaceType.AMUSEMENT_PARK,
 					PlaceType.AQUARIUM, PlaceType.ART_GALLERY,
@@ -80,13 +79,30 @@ public class Main {
 			allPlaces = Place.getDataFromFile(fileName);
 		}
 		else if (mainMenuChoice == 3) {
-			boolean quit;
+			// Here we'll just give places an id based on the order they were
+			// input.
+			int id = 0;
 			do {
-				String placeName = stringPrompt(scanner,
+				String name = stringPrompt(scanner,
 						"Enter the place name (or \"quit\"): ");
-				if (placeName.equalsIgnoreCase("quit")) break;
+				if (name.equalsIgnoreCase("quit")) break;
 				
+				String latLng;
+				double lat, lng;
+				do {
+					latLng = stringPrompt(scanner,
+							"Enter the coordinates of the place (<lat>, <lng>): ");
+					try {
+						String[] split = latLng.split(",");
+						lat = Double.parseDouble(split[0].strip());
+						lng = Double.parseDouble(split[1].strip());
+						break;
+					} catch (Exception e) {	}
+				} while (true);
+
+				allPlaces.add(new Place(String.valueOf(id), name, lat, lng));
 				
+				System.out.println();
 			} while (true);
 			
 			destinations = allPlaces;
@@ -140,10 +156,13 @@ public class Main {
 		}
 		
 		int days;
+		
+		if (destinations.size() == 0) return;
+		
 		do {
-			System.out.print("Enter the number of days on vacation (must be less"
-				+ " or equal to " + destinations.size() + "): ");
-			days = Integer.parseInt(scanner.nextLine());
+			days = intPrompt(scanner, "Enter the number of days on vacation "
+					+ "(must be less or equal to " + destinations.size() + 
+					"): ");
 		} while (days > destinations.size() || days < 1);
 		
 		PlaceCluster[] clusters = PlaceCluster.kMeans(destinations, days);
@@ -336,6 +355,19 @@ public class Main {
 			try {
 				System.out.print(prompt);
 				input = Integer.parseInt(scanner.nextLine());
+				break;
+			} catch (Exception e) { }
+		} while (true);
+		
+		return input;
+	}
+	
+	private static double doublePrompt(Scanner scanner, String prompt) {
+		double input;
+		do {
+			try {
+				System.out.print(prompt);
+				input = Double.parseDouble(scanner.nextLine());
 				break;
 			} catch (Exception e) { }
 		} while (true);

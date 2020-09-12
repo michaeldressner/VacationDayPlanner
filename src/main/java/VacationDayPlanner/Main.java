@@ -39,8 +39,8 @@ public class Main {
 		System.out.println("1. Run a new dataset from the web (uses a lot of"
 				+ " API calls but saves the data in the process)");
 		System.out.println("2. Run a dataset from a file");
-		System.out.println("3. Manually enter latitude/longitude and place "
-				+ "names (no API key required)");
+		System.out.println("3. Manually look up places or enter "
+				+ "latitude/longitude and place names (no API key required)");
 		
 		int mainMenuChoice;
 		do {
@@ -87,20 +87,59 @@ public class Main {
 						"Enter the place name (or \"quit\"): ");
 				if (name.equalsIgnoreCase("quit")) break;
 				
-				String latLng;
-				double lat, lng;
-				do {
-					latLng = stringPrompt(scanner,
-							"Enter the coordinates of the place (<lat>, <lng>): ");
+				boolean lookup = yesNoPrompt(scanner, "Would you like to "
+						+ "look up the place (n for manual coordinate "
+						+ "entry)? ");
+				
+				if (lookup) {
 					try {
-						String[] split = latLng.split(",");
-						lat = Double.parseDouble(split[0].strip());
-						lng = Double.parseDouble(split[1].strip());
-						break;
-					} catch (Exception e) {	}
-				} while (true);
-
-				allPlaces.add(new Place(String.valueOf(id), name, lat, lng));
+						if (context == null) {
+							String apiKey = stringPrompt(scanner, "Enter your API key: ");
+							context = new GeoApiContext.Builder()
+									.apiKey(apiKey).build();
+						}
+						
+						PlacesSearchResult[] results = PlacesApi
+								.findPlaceFromText(context, name, 
+										FindPlaceFromTextRequest.InputType
+										.TEXT_QUERY).await().candidates;
+						
+						for (PlacesSearchResult psr : results) {
+							PlaceDetails details = PlacesApi.placeDetails(
+									context, psr.placeId).await();
+							boolean correctAddress = yesNoPrompt(scanner,
+									"Is this the correct address - (" + 
+									details.formattedAddress + ")?");
+							
+							if (correctAddress) {
+								LatLng loc = details.geometry.location;
+								allPlaces.add(new Place(details.placeId,
+										details.name, loc.lat, loc.lng));
+								System.out.println(details.name + " has been "
+										+ "added to the destination list");
+								break;
+							}
+							
+							System.out.println();
+						}
+					} catch (Exception e) { }
+				} else {
+					String latLng;
+					double lat, lng;
+					do {
+						latLng = stringPrompt(scanner,
+								"Enter the coordinates of the place "
+								+ "(<lat>, <lng>): ");
+						try {
+							String[] split = latLng.split(",");
+							lat = Double.parseDouble(split[0].strip());
+							lng = Double.parseDouble(split[1].strip());
+							break;
+						} catch (Exception e) {	}
+					} while (true);
+	
+					allPlaces.add(new Place(String.valueOf(id), name, lat, lng));
+				}
 				
 				System.out.println();
 			} while (true);
